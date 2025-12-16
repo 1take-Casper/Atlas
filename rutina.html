@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rutina</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+
+<style>
+    .navbar-glass {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        background: rgba(255, 255, 255, 0.6);
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .navbar-glass {
+            background: rgba(20, 20, 20, 0.6);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-link {
+            color: white !important;
+        }
+    }
+
+    .nav-icon {
+        font-size: 1.25rem;
+    }
+
+    .nav-link:hover {
+        color: #0d6efd !important;
+    }
+</style>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-glass fixed-top py-2">
+    <div class="container d-flex justify-content-center position-relative">
+        <ul class="nav gap-4">
+            <li class="nav-item text-center">
+                <a class="nav-link" href="index.html">
+                    <i class="bi bi-house-door nav-icon"></i><br>
+                    <small>Inicio</small>
+                </a>
+            </li>
+
+            <li class="nav-item text-center">
+                <a class="nav-link" href="resumen entrenamiento.html">
+                    <i class="bi bi-journal-text nav-icon"></i><br>
+                    <small>Resumen</small>
+                </a>
+            </li>
+
+            <li class="nav-item text-center">
+                <a class="nav-link" href="progreso.html">
+                    <i class="bi bi-graph-up-arrow nav-icon"></i><br>
+                    <small>Progreso</small>
+                </a>
+            </li>
+
+            <li class="nav-item text-center">
+                <a class="nav-link active" href="rutina.html">
+                    <i class="bi bi-dumbbell nav-icon"></i><br>
+                    <small>Rutina</small>
+                </a>
+            </li>
+        </ul>
+
+        <!-- OFFCANVAS BUTTON -->
+        <button class="navbar-toggler position-absolute end-0" 
+                type="button" data-bs-toggle="offcanvas" 
+                data-bs-target="#menuLateral">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</nav>
+
+<!-- OFFCANVAS MODERNO -->
+<div class="offcanvas offcanvas-end" id="menuLateral">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Menú</h5>
+        <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <ul class="list-group">
+            <a href="index.html" class="list-group-item list-group-item-action">
+                <i class="bi bi-house"></i> Inicio
+            </a>
+            <a href="rutina.html" class="list-group-item list-group-item-action">
+                <i class="bi bi-person-arms-up nav-icon"></i> Rutina
+            </a>
+            <a href="progreso.html" class="list-group-item list-group-item-action">
+                <i class="bi bi-graph-up-arrow"></i> Progreso
+            </a>
+            <a href="resumen entrenamiento.html" class="list-group-item list-group-item-action">
+                <i class="bi bi-journal-text"></i> Resumen
+            </a>
+        </ul>
+    </div>
+</div>
+
+<div style="height: 80px;"></div>
+
+<div class="container">
+    <h2 class="text-center mt-4">Rutinas de Entrenamiento</h2>
+    <p class="text-center text-muted">Elige una rutina predeterminada o crea la tuya.</p>
+
+    <!-- RUTINAS PREDETERMINADAS -->
+    <div class="card p-3 shadow-sm mt-4">
+        <h4>Rutinas predeterminadas</h4>
+        <select id="rutinaPredefinida" class="form-select mt-2">
+            <option value="">Selecciona una rutina...</option>
+            <option value="pecho">Pecho y Hombro</option>
+            <option value="espalda">Espalda y Bíceps</option>
+            <option value="pierna">Piernas</option>
+            <option value="fullbody">Full Body</option>
+        </select>
+        <button class="btn btn-primary mt-3" onclick="agregarRutinaPredeterminada()">
+            Agregar rutina a mi listado
+        </button>
+    </div>
+
+    <!-- FORMULARIO PARA CREAR NUEVA RUTINA -->
+    <div class="card p-3 shadow-sm mt-4">
+        <h4>Crear una rutina personalizada</h4>
+        <div class="mt-2">
+            <label>Nombre de la rutina</label>
+            <input type="text" id="nombreRutina" class="form-control" placeholder="Ej: Brazos potentes">
+        </div>
+        <div class="mt-2">
+            <label>Descripción / Ejercicios</label>
+            <textarea id="descripcionRutina" class="form-control" rows="3" placeholder="Ejercicios separados por comas"></textarea>
+        </div>
+        <button class="btn btn-success mt-3" onclick="agregarRutinaPersonalizada()">
+            Guardar mi rutina
+        </button>
+    </div>
+
+    <!-- LISTA DE RUTINAS GUARDADAS -->
+    <div class="card p-3 shadow-sm mt-4 mb-5">
+        <h4>Mis Rutinas Guardadas</h4>
+        <ul id="listaRutinas" class="list-group mt-3"></ul>
+        <button class="btn btn-danger mt-3" onclick="limpiarRutinas()">Limpiar todas las rutinas</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Plantillas de rutinas predeterminadas
+    const rutinasPredet = {
+        pecho: ["Press inclinado","Pech deck","Cruce de poleas","Press militar","Elevaciones laterales","Press francés","Extensiones de tríceps"],
+        espalda: ["Dominadas","Jalón al pecho","Remo con barra","Remo a una mano","Curl bíceps barra","Curl bíceps alternado"],
+        pierna: ["Sentadilla","Peso muerto","Prensa","Extensiones de cuadriceps","Curl femoral","Elevación de talones"],
+        fullbody: ["Sentadilla","Press banca","Peso muerto","Press militar","Remo con barra","Plancha abdominal"]
+    };
+
+    function mostrarRutinas() {
+        let rutinas = JSON.parse(localStorage.getItem("misRutinas")) || [];
+        let lista = document.getElementById("listaRutinas");
+        lista.innerHTML = "";
+
+        rutinas.forEach((r, i) => {
+            lista.innerHTML += `
+                <li class="list-group-item">
+                    <strong>${r.nombre}</strong> <small class="text-muted">(${r.fecha})</small><br>
+                    <small>${r.ejercicios.join(", ")}</small>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-danger" onclick="eliminarRutina(${i})">Eliminar</button>
+                        <button class="btn btn-sm btn-warning" onclick="editarRutina(${i})">Editar</button>
+                    </div>
+                </li>
+            `;
+        });
+    }
+
+    function agregarRutinaPredeterminada() {
+        let seleccion = document.getElementById("rutinaPredefinida").value;
+        if(!seleccion) { alert("Selecciona una rutina."); return; }
+        let nombre = document.querySelector("#rutinaPredefinida option:checked").textContent;
+        let ejercicios = rutinasPredet[seleccion];
+        guardarRutina(nombre, ejercicios);
+    }
+
+    function agregarRutinaPersonalizada() {
+        let nombre = document.getElementById("nombreRutina").value.trim();
+        let desc = document.getElementById("descripcionRutina").value.trim();
+        if(!nombre || !desc) { alert("Completa todos los campos."); return; }
+        let ejercicios = desc.split(",").map(x=>x.trim());
+        guardarRutina(nombre, ejercicios);
+        document.getElementById("nombreRutina").value = "";
+        document.getElementById("descripcionRutina").value = "";
+    }
+
+    function guardarRutina(nombre, ejercicios) {
+        let rutinas = JSON.parse(localStorage.getItem("misRutinas")) || [];
+        let fecha = new Date().toLocaleDateString();
+        rutinas.push({nombre, ejercicios, fecha});
+        localStorage.setItem("misRutinas", JSON.stringify(rutinas));
+        mostrarRutinas();
+    }
+
+    function eliminarRutina(i) {
+        let rutinas = JSON.parse(localStorage.getItem("misRutinas")) || [];
+        rutinas.splice(i, 1);
+        localStorage.setItem("misRutinas", JSON.stringify(rutinas));
+        mostrarRutinas();
+    }
+
+    function limpiarRutinas() {
+        if(confirm("¿Seguro que deseas eliminar todas las rutinas?")) {
+            localStorage.removeItem("misRutinas");
+            mostrarRutinas();
+        }
+    }
+
+    function editarRutina(i) {
+        let rutinas = JSON.parse(localStorage.getItem("misRutinas")) || [];
+        let r = rutinas[i];
+        let nuevoNombre = prompt("Editar nombre de la rutina:", r.nombre);
+        if(nuevoNombre) r.nombre = nuevoNombre.trim();
+        let nuevaDesc = prompt("Editar ejercicios (separados por coma):", r.ejercicios.join(", "));
+        if(nuevaDesc) r.ejercicios = nuevaDesc.split(",").map(x=>x.trim());
+        rutinas[i] = r;
+        localStorage.setItem("misRutinas", JSON.stringify(rutinas));
+        mostrarRutinas();
+    }
+
+    mostrarRutinas();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Progreso</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .navbar-glass {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        background: rgba(255, 255, 255, 0.6);
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    @media (prefers-color-scheme: dark) {
+        .navbar-glass {
+            background: rgba(20,20,20,0.6);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-link { color:white !important; }
+    }
+    .nav-icon { font-size: 1.25rem; }
+    .nav-link:hover { color: #0d6efd !important; }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-glass py-2">
+    <div class="container d-flex justify-content-center position-relative">
+        <ul class="nav gap-4">
+            <li class="nav-item text-center">
+                <a class="nav-link" href="index.html"><i class="bi bi-house-door nav-icon"></i><br><small>Inicio</small></a>
+            </li>
+            <li class="nav-item text-center">
+                <a class="nav-link" href="resumen entrenamiento.html"><i class="bi bi-journal-text nav-icon"></i><br><small>Resumen</small></a>
+            </li>
+            <li class="nav-item text-center">
+                <a class="nav-link active" href="progreso.html"><i class="bi bi-graph-up-arrow nav-icon"></i><br><small>Progreso</small></a>
+            </li>
+            <li class="nav-item text-center">
+                <a class="nav-link" href="rutina.html"><i class="bi bi-person-arms-up nav-icon"></i><br><small>Rutina</small></a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div style="height: 80px;"></div>
+
+<div class="container">
+    <h1 class="text-center">Progreso Semanal</h1>
+    <p class="text-center text-muted">Visualiza tu rendimiento y mejora cada semana</p>
+
+    <!-- ESTADÍSTICAS RÁPIDAS -->
+    <div class="row text-center mt-4 mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm p-3">
+                <h5>Total de Entrenamientos</h5>
+                <p id="totalEntrenamientos">0</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm p-3">
+                <h5>Ejercicios Completados</h5>
+                <p id="totalEjercicios">0</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm p-3">
+                <h5>Mejor Peso</h5>
+                <p id="mejorPeso">0 kg</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORMULARIO DE REGISTRO -->
+    <div class="col-md-6 mb-4 mx-auto" id="entrenamientos">
+        <h4 class="text-center">Registra tus pesos</h4>
+        <form id="form-entrenamiento" class="row g-2">
+            <div class="col-6">
+                <label for="inputEjercicio" class="form-label">Ejercicio</label>
+                <input type="text" id="inputEjercicio" class="form-control" placeholder="Nombre del ejercicio" required>
+            </div>
+            <div class="col-6">
+                <label for="inputPeso" class="form-label">Peso (kg)</label>
+                <input type="number" id="inputPeso" class="form-control" min="0" required>
+            </div>
+            <div class="col-6">
+                <label for="inputSerie" class="form-label">Serie</label>
+                <input type="number" id="inputSerie" class="form-control" min="1" required>
+            </div>
+            <div class="col-6">
+                <label for="inputRepe" class="form-label">Repeticiones</label>
+                <input type="number" id="inputRepe" class="form-control" min="1" required>
+            </div>
+            <div class="col-12 text-center mt-2">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+            <div class="col-12 text-center mt-2">
+                <button type="button" id="btnEliminarTodo" class="btn btn-danger btn-sm">Eliminar todos los entrenamientos</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- TABLA DE RESUMEN -->
+    <div class="card p-3 shadow-sm mb-4">
+        <h4>Últimos Pesos Registrados</h4>
+        <table class="table table-striped table-hover mt-3">
+            <thead>
+                <tr>
+                    <th>Ejercicio</th>
+                    <th>Peso (kg)</th>
+                    <th>Serie</th>
+                    <th>Repeticiones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaProgreso"></tbody>
+        </table>
+    </div>
+
+    <!-- GRÁFICO -->
+    <div class="card p-3 shadow-sm mb-5">
+        <h4>Gráfico de Progreso General</h4>
+        <canvas id="graficoGeneral" height="150"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const form = document.getElementById("form-entrenamiento");
+    const tabla = document.getElementById("tablaProgreso");
+    const btnEliminarTodo = document.getElementById("btnEliminarTodo");
+
+    // Recuperar registros de localStorage
+    let registros = JSON.parse(localStorage.getItem("entrenamientos")) || [];
+
+    function actualizarTablaYEstadisticas() {
+        // Tabla
+        tabla.innerHTML = "";
+        registros.forEach(r => {
+            tabla.innerHTML += `<tr>
+                <td>${r.ejercicio}</td>
+                <td>${r.peso} kg</td>
+                <td>${r.serie}</td>
+                <td>${r.repe}</td>
+            </tr>`;
+        });
+
+        // Estadísticas
+        document.getElementById("totalEntrenamientos").innerText = registros.length;
+        const ejerciciosUnicos = [...new Set(registros.map(r => r.ejercicio))];
+        document.getElementById("totalEjercicios").innerText = ejerciciosUnicos.length;
+        document.getElementById("mejorPeso").innerText = registros.length ? Math.max(...registros.map(r => r.peso)) + " kg" : "0 kg";
+
+        // Gráfico: último peso por ejercicio
+        let ultimoPeso = {};
+        ejerciciosUnicos.forEach(ej => {
+            const regs = registros.filter(r => r.ejercicio === ej);
+            ultimoPeso[ej] = regs[regs.length - 1].peso;
+        });
+
+        const ctx = document.getElementById("graficoGeneral").getContext("2d");
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ejerciciosUnicos,
+                datasets: [{
+                    label: 'Último peso (kg)',
+                    data: ejerciciosUnicos.map(ej => ultimoPeso[ej]),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgb(54, 162, 235)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Peso (kg)' }
+                    }
+                }
+            }
+        });
+    }
+
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const ejercicio = document.getElementById("inputEjercicio").value.trim();
+        const peso = Number(document.getElementById("inputPeso").value);
+        const serie = Number(document.getElementById("inputSerie").value);
+        const repe = Number(document.getElementById("inputRepe").value);
+
+        if(!ejercicio || isNaN(peso) || isNaN(serie) || isNaN(repe)) {
+            alert("Completa todos los campos correctamente.");
+            return;
+        }
+
+        registros.push({ ejercicio, peso, serie, repe });
+        localStorage.setItem("entrenamientos", JSON.stringify(registros));
+
+        form.reset();
+        actualizarTablaYEstadisticas();
+    });
+
+    btnEliminarTodo.addEventListener("click", function() {
+        if(confirm("¿Deseas eliminar todos los entrenamientos?")) {
+            registros = [];
+            localStorage.removeItem("entrenamientos");
+            actualizarTablaYEstadisticas();
+        }
+    });
+
+    actualizarTablaYEstadisticas();
+</script>
+</body>
+</html>
